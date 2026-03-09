@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User CRUD App</title>
+</head>
+<body>
+  <h1>User CRUD App</h1>
+
+  <h2>Tambah User</h2>
+  <form id="userForm">
+    <input type="text" id="name" placeholder="Nama" required><br><br>
+    <input type="email" id="email" placeholder="Email" required><br><br>
+    <input type="file" id="photo"><br><br>
+    <button type="submit">Simpan</button>
+  </form>
+
+  <h2>Daftar User</h2>
+  <button onclick="loadUsers()">Refresh</button>
+  <ul id="userList"></ul>
+
+  <script>
+    const API_BASE = `http://${window.location.hostname}:8081`;
+
+    async function loadUsers() {
+      const res = await fetch(`${API_BASE}/users`);
+      const users = await res.json();
+
+      const list = document.getElementById("userList");
+      list.innerHTML = "";
+
+      users.forEach(user => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <b>${user.name}</b> - ${user.email}
+          ${user.photo_url ? `<br><img src="${user.photo_url}" width="100">` : ""}
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    document.getElementById("userForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData();
+      formData.append("name", document.getElementById("name").value);
+      formData.append("email", document.getElementById("email").value);
+
+      const photo = document.getElementById("photo").files[0];
+      if (photo) formData.append("photo", photo);
+
+      await fetch(`${API_BASE}/users`, {
+        method: "POST",
+        body: formData
+      });
+
+      document.getElementById("userForm").reset();
+      loadUsers();
+    });
+
+    loadUsers();
+  </script>
+</body>
+</html>
